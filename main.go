@@ -1,18 +1,32 @@
 package main
 
 import (
-  "fmt"
-  "io/ioutil"
-  "log"
-  "net/http"
-  "net/url"
-  "os"
-  "encoding/json"
-  // "math/big"
-  // "github.com/shopspring/decimal"
+	"encoding/json"
+	"fmt"
+  	"io/ioutil"
+  	"log"
+  	"net/http"
+  	"net/url"
+  	"os"
+  	"time"
+
   "github.com/leekchan/accounting"
-  "time"
+  "github.com/joho/godotenv"
 )
+
+
+func goDotEnvVariable(key string) string {
+
+	// load .env file
+	err := godotenv.Load(".env")
+  
+	if err != nil {
+	  log.Fatalf("Error loading .env file")
+	}
+  
+	return os.Getenv(key)
+}
+
 
 func main() {
   client := &http.Client{}
@@ -22,16 +36,16 @@ func main() {
     os.Exit(1)
   }
 
+  api_key := goDotEnvVariable("API_KEY")
   q := url.Values{}
-//   q.Add("start", "1")
-//   q.Add("limit", "5000")
-//   q.Add("convert", "USD")
-  
-q.Add("symbol", "BTC,ETH,DOGE")
-  // q.Add("symbol","BTC")
+  //   q.Add("start", "1")
+  //   q.Add("limit", "5000")
+  //   q.Add("convert", "USD")
+  q.Add("symbol", "BTC,ETH,DOGE")
+
 
   req.Header.Set("Accepts", "application/json")
-  req.Header.Add("X-CMC_PRO_API_KEY", "<api-key>")
+  req.Header.Add("X-CMC_PRO_API_KEY", api_key)
   req.URL.RawQuery = q.Encode()
 
 
