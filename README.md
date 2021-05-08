@@ -1,3 +1,3 @@
 # crypto-prices
 
-## Grabby crypto prices to practice Go
+## Grabbing crypto prices to practice Go
