@@ -6,14 +6,13 @@ ENV GO111MODULE=on
 # RUN apk add git
 
 # Add Maintainer Info
-LABEL maintainer="<>"
+LABEL maintainer="ezdeazy"
 
 RUN mkdir /app
 ADD . /app
 WORKDIR /app
 
 COPY go.mod go.sum ./
-# COPY .env ./
 
 # Download all the dependencies
 RUN go mod download
