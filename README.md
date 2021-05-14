@@ -2,6 +2,6 @@
 
 ## Grabbing crypto prices to practice Go
 
-### Requirements 
+### /original Requirements 
 
 *  .env file with API_KEY set to your coinmarketcap API key

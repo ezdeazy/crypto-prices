@@ -1,1 +1,4 @@
 .env
+.DS_Store
+/original/.env
+/original/.DS_Store
