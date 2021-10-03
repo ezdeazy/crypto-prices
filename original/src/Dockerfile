@@ -8,6 +8,7 @@ ENV GO111MODULE=on
 # Add Maintainer Info
 LABEL maintainer="ezdeazy"
 
+RUN apt-get -y install tzdata
 RUN mkdir /app
 ADD . /app
 WORKDIR /app
@@ -25,7 +26,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 # GO Repo base repo
 FROM alpine:latest
 
-RUN apk --no-cache add ca-certificates curl
+RUN apk --no-cache add ca-certificates curl tzdata
 
 RUN mkdir /app
 
