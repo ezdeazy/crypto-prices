@@ -1,0 +1,10 @@
+apiVersion: skaffold/v2beta16
+kind: Config
+metadata:
+  name: crypto-prices
+profiles:
+- name: kind
+  deploy:
+    kustomize:
+      paths:
+      - deploy/kind
