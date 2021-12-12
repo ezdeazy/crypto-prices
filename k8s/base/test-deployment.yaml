@@ -1,28 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: crypto
   labels:
-    app: crypto
+    app: example1
+  name: example1
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: crypto
+      app: example1
   template:
     metadata:
       labels:
-        app: crypto
+        app: example1
     spec:
       containers:
-      - name: crypto
-        image: ezdeazy/crypto-prices:0.1.1
-        env:
-        - name: API_KEY
-          value: ""
-        ports:
-        - containerPort: 8080
-          name: crypto-http
       - image: nginx:latest
         name: nginx
         ports:
