@@ -29,8 +29,13 @@ func goDotEnvVariable(key string) string {
 func main() {
 	log.Printf("Listening on port :8080")
 	http.HandleFunc("/favicon.ico", doNothing)
-    http.HandleFunc("/", CryptoPrices)
+  http.HandleFunc("/", CryptoPrices)
+	http.HandleFunc("/testing", HelloWorld)
 	http.ListenAndServe(":8080", nil)
+}
+
+func HelloWorld(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Hello world from our test page!")
 }
 
 func CryptoPrices(w http.ResponseWriter, r *http.Request) {
