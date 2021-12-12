@@ -3,15 +3,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-  	"io/ioutil"
-  	"log"
-  	"net/http"
-  	"net/url"
-  	"os"
-  	"time"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"net/url"
+	"os"
+	"time"
 
-  	"github.com/leekchan/accounting"
-  	"github.com/joho/godotenv"
+	"github.com/leekchan/accounting"
+	"github.com/joho/godotenv"
 )
 
 func goDotEnvVariable(key string) string {
