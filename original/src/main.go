@@ -150,6 +150,25 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	log.Info().Msg("Hello world from our test page!")
 }
 
+func get_time() string {
+	// returns the current time in PST
+	if tz := os.Getenv("TZ"); tz != "" {
+		var err error
+		time.Local, err = time.LoadLocation(tz)
+		if err != nil {
+			log.Printf("error loading location '%s': %v\n", tz, err)
+		}
+	}
+  
+	// convert UTC to pacific
+	pacificTime, errTime := time.LoadLocation("America/Los_Angeles")
+	if errTime != nil {
+		fmt.Println("err: ", errTime.Error())
+	}
+
+	return time.Now().In(pacificTime).Format(time.RFC1123)
+}
+
 func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 
 	log.Info().Msg("Hello world! Serving crypto prices server")
@@ -177,22 +196,7 @@ func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
-	// manually set time zone
-	if tz := os.Getenv("TZ"); tz != "" {
-		var err error
-		time.Local, err = time.LoadLocation(tz)
-		if err != nil {
-			log.Printf("error loading location '%s': %v\n", tz, err)
-		}
-	}
-  
-	// convert UTC to pacific
-	pacificTime, errTime := time.LoadLocation("America/Los_Angeles")
-	if errTime != nil {
-		fmt.Println("err: ", errTime.Error())
-	}
-	dateTime := time.Now().In(pacificTime).Format(time.RFC1123)
-
+	dateTime := get_time()
 
 	var c coins
 
