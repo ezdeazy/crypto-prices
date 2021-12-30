@@ -212,9 +212,7 @@ func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 	eth_price := ac.FormatMoneyBigFloat(big.NewFloat(c.Data.ETH.Quote.USD.Price))
 	doge_price := ac.FormatMoneyBigFloat(big.NewFloat(c.Data.DOGE.Quote.USD.Price))
 	
-	log.Info().Msg("Returning BTC Price: " + btc_price)
-	log.Info().Msg("Returning ETH Price: " + eth_price)
-	log.Info().Msg("Returning DOGE Price: " + doge_price)
+	log.Info().Msg("Returning All prices. BTC: " + btc_price + "  ETH Price: " + eth_price + "  DOGE Price: " + doge_price)
 
 	returnString := "Crypto prices -- " + dateTime + "\n\nBTC:  " + btc_price + "\nETH:  " + eth_price + "\nDOGE: " + doge_price + "\n"
 
