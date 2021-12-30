@@ -4,15 +4,106 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
+	"math/big"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/leekchan/accounting"
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
+
+
+type coins struct {
+	Data data `json:"data"`
+}
+
+type data struct {
+	BTC  BTC  `json:"BTC"`
+	ETH  ETH  `json:"ETH"`
+	DOGE DOGE `json:"DOGE"`
+}
+
+type BTC struct {
+	Id                int         `json:"id"`
+	Name              string      `json:"name"`
+	Symbol            string      `json:"symbol"`
+	Slug              string      `json:"slug"`
+	NumMarketPairs    int         `json:"num_market_pairs"`
+	DateAdded         time.Time   `json:"date_added"`
+	MaxSupply         int         `json:"max_supply"`
+	CirculatingSupply int         `json:"circulating_supply"`
+	TotalSupply       int         `json:"total_supply"`
+	IsActive          int         `json:"is_active"`
+	Platform          interface{} `json:"platform"`
+	CmcRank           int         `json:"cmc_rank"`
+	IsFiat            int         `json:"is_fiat"`
+	LastUpdated       time.Time   `json:"last_updated"`
+	Quote             Quote       `json:"quote"`
+}
+
+type ETH struct {
+	Id                int         `json:"id"`
+	Name              string      `json:"name"`
+	Symbol            string      `json:"symbol"`
+	Slug              string      `json:"slug"`
+	NumMarketPairs    int         `json:"num_market_pairs"`
+	DateAdded         time.Time   `json:"date_added"`
+	MaxSupply         int         `json:"max_supply"`
+	CirculatingSupply float64     `json:"circulating_supply"`
+	TotalSupply       float64     `json:"total_supply"`
+	IsActive          int         `json:"is_active"`
+	Platform          interface{} `json:"platform"`
+	CmcRank           int         `json:"cmc_rank"`
+	IsFiat            int         `json:"is_fiat"`
+	LastUpdated       time.Time   `json:"last_updated"`
+	Quote             Quote       `json:"quote"`
+}
+
+type DOGE struct {
+	Id                int         `json:"id"`
+	Name              string      `json:"name"`
+	Symbol            string      `json:"symbol"`
+	Slug              string      `json:"slug"`
+	NumMarketPairs    int         `json:"num_market_pairs"`
+	DateAdded         time.Time   `json:"date_added"`
+	MaxSupply         int         `json:"max_supply"`
+	CirculatingSupply float64     `json:"circulating_supply"`
+	TotalSupply       float64     `json:"total_supply"`
+	IsActive          int         `json:"is_active"`
+	Platform          interface{} `json:"platform"`
+	CmcRank           int         `json:"cmc_rank"`
+	IsFiat            int         `json:"is_fiat"`
+	LastUpdated       time.Time   `json:"last_updated"`
+	Quote             Quote       `json:"quote"`
+}
+
+type Quote struct {
+	USD USD `json:"USD"`
+}
+
+type USD struct {
+	Price                 float64   `json:"price"`
+	Volume24H             float64   `json:"volume_24h"`
+	VolumeChange24H       float64   `json:"volume_change_24h"`
+	PercentChange1H       float64   `json:"percent_change_1h"`
+	PercentChange24H      float64   `json:"percent_change_24h"`
+	PercentChange7D       float64   `json:"percent_change_7d"`
+	PercentChange30D      float64   `json:"percent_change_30d"`
+	PercentChange60D      float64   `json:"percent_change_60d"`
+	PercentChange90D      float64   `json:"percent_change_90d"`
+	MarketCap             float64   `json:"market_cap"`
+	MarketCapDominance    float64   `json:"market_cap_dominance"`
+	FullyDilutedMarketCap float64   `json:"fully_diluted_market_cap"`
+	LastUpdated           time.Time `json:"last_updated"`
+}
+
+const logTimeFormat = "2006-01-02T15:04:05.000Z07:00"
+
 
 func goDotEnvVariable(key string) string {
 
@@ -25,9 +116,30 @@ func goDotEnvVariable(key string) string {
 	return os.Getenv(key)
 }
 
+func convertLevel(level string) zerolog.Level {
+	switch strings.ToLower(level) {
+	case "trace":
+		 return zerolog.TraceLevel
+	case "debug":
+		 return zerolog.DebugLevel
+	case "info":
+		 return zerolog.InfoLevel
+	case "warn":
+		 return zerolog.WarnLevel
+	case "error":
+		 return zerolog.ErrorLevel
+	case "fatal":
+		 return zerolog.FatalLevel
+	case "panic":
+		 return zerolog.PanicLevel
+	default:
+		 return zerolog.InfoLevel
+	}
+}
 
 func main() {
-	log.Printf("Listening on port :8080")
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: logTimeFormat}).Level(convertLevel("debug")).With().Caller().Logger()
+	log.Info().Msg("Listening on port :8080")
 	http.HandleFunc("/favicon.ico", doNothing)
   http.HandleFunc("/", CryptoPrices)
 	http.HandleFunc("/testing", HelloWorld)
@@ -35,17 +147,17 @@ func main() {
 }
 
 func HelloWorld(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Hello world from our test page!")
+	log.Info().Msg("Hello world from our test page!")
 }
 
 func CryptoPrices(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Hello world! Serving crypto prices server")
-	// fmt.Fprintf(w, "directory, %s!", r.URL.Path[1:])
+
+	log.Info().Msg("Hello world! Serving crypto prices server")
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET","https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest", nil)
 	if err != nil {
-	  log.Print(err)
+		log.Print(err)
 	  os.Exit(1)
 	}
   
@@ -60,17 +172,10 @@ func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := client.Do(req);
 	if err != nil {
-	  fmt.Println("Error sending request to server")
+		log.Print(err)
 	  os.Exit(1)
 	}
-
-	respBody, _ := ioutil.ReadAll(resp.Body)
-	var result map[string]interface{}
-	json.Unmarshal([]byte(respBody), &result)
-
-
-	data := result["data"].(map[string]interface{})
-
+	defer resp.Body.Close()
 
 	// manually set time zone
 	if tz := os.Getenv("TZ"); tz != "" {
@@ -89,43 +194,30 @@ func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 	dateTime := time.Now().In(pacificTime).Format(time.RFC1123)
 
 
-	btc := data["BTC"].(map[string]interface{})
-	btc_name := btc["name"].(string)
-	btc_symbol := btc["symbol"].(string)
-	btc_quote := btc["quote"].(map[string]interface{})
-	btc_usd := btc_quote["USD"].(map[string]interface{})
-	btc_price := btc_usd["price"].(float64)
+	var c coins
 
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		 log.Err(err).Msg("error reading resp")
+		 os.Exit(1)
+	}
+
+	if err = json.Unmarshal(body, &c); err != nil { // Parse []byte to go struct pointer
+		 log.Err(err).Msg("Can not unmarshal JSON")
+		 os.Exit(1)
+	}
 
 	ac := accounting.Accounting{Symbol: "$", Precision: 2}
+	btc_price := ac.FormatMoneyBigFloat(big.NewFloat(c.Data.BTC.Quote.USD.Price))
+	eth_price := ac.FormatMoneyBigFloat(big.NewFloat(c.Data.ETH.Quote.USD.Price))
+	doge_price := ac.FormatMoneyBigFloat(big.NewFloat(c.Data.DOGE.Quote.USD.Price))
+	
+	log.Info().Msg("Returning BTC Price: " + btc_price)
+	log.Info().Msg("Returning ETH Price: " + eth_price)
+	log.Info().Msg("Returning DOGE Price: " + doge_price)
 
-	btc_price_formatted := ac.FormatMoney(btc_price)
-	btc_returnString := btc_name + " (" + btc_symbol + "): " + btc_price_formatted
+	returnString := "Crypto prices -- " + dateTime + "\n\nBTC:  " + btc_price + "\nETH:  " + eth_price + "\nDOGE: " + doge_price + "\n"
 
-
-	eth := data["ETH"].(map[string]interface{})
-	eth_name := eth["name"].(string)
-	eth_symbol := eth["symbol"].(string)
-	eth_quote := eth["quote"].(map[string]interface{})
-	eth_usd := eth_quote["USD"].(map[string]interface{})
-	eth_price := eth_usd["price"].(float64)
-
-	eth_price_formatted := ac.FormatMoney(eth_price)
-	eth_returnString := eth_name + " (" + eth_symbol + "): " + eth_price_formatted
-
-
-	doge := data["DOGE"].(map[string]interface{})
-	doge_name := doge["name"].(string)
-	doge_symbol := doge["symbol"].(string)
-	doge_quote := doge["quote"].(map[string]interface{})
-	doge_usd := doge_quote["USD"].(map[string]interface{})
-	doge_price := doge_usd["price"].(float64)
-
-	doge_price_formatted := ac.FormatMoney(doge_price)
-	doge_returnString := doge_name + " (" + doge_symbol + "): " + doge_price_formatted
-
-
-	returnString := "Crypto prices -- " + dateTime + "\n\n" + btc_returnString + "\n" + eth_returnString + "\n" + doge_returnString
 	fmt.Fprintf(w, returnString)
 }
 
