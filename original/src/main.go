@@ -116,6 +116,7 @@ func goDotEnvVariable(key string) string {
 	return os.Getenv(key)
 }
 
+
 func convertLevel(level string) zerolog.Level {
 	switch strings.ToLower(level) {
 	case "trace":
@@ -137,47 +138,17 @@ func convertLevel(level string) zerolog.Level {
 	}
 }
 
-func main() {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: logTimeFormat}).Level(convertLevel("debug")).With().Caller().Logger()
-	log.Info().Msg("Listening on port :8080")
-	http.HandleFunc("/favicon.ico", doNothing)
-  http.HandleFunc("/", CryptoPrices)
-	http.HandleFunc("/testing", HelloWorld)
-	http.ListenAndServe(":8080", nil)
-}
 
 func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	log.Info().Msg("Hello world from our test page!")
 }
 
-func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 
-	log.Info().Msg("Hello world! Serving crypto prices server")
+func doNothing(w http.ResponseWriter, r *http.Request){}
 
-	client := &http.Client{}
-	req, err := http.NewRequest("GET","https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest", nil)
-	if err != nil {
-		log.Print(err)
-	  os.Exit(1)
-	}
-  
-	api_key := goDotEnvVariable("API_KEY")
-	q := url.Values{}
-	q.Add("symbol", "BTC,ETH,DOGE")
-  
-  
-	req.Header.Set("Accepts", "application/json")
-	req.Header.Add("X-CMC_PRO_API_KEY", api_key)
-	req.URL.RawQuery = q.Encode()
 
-	resp, err := client.Do(req);
-	if err != nil {
-		log.Print(err)
-	  os.Exit(1)
-	}
-	defer resp.Body.Close()
-
-	// manually set time zone
+func getTime() string {
+	// returns the current time in PST
 	if tz := os.Getenv("TZ"); tz != "" {
 		var err error
 		time.Local, err = time.LoadLocation(tz)
@@ -191,10 +162,35 @@ func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 	if errTime != nil {
 		fmt.Println("err: ", errTime.Error())
 	}
-	dateTime := time.Now().In(pacificTime).Format(time.RFC1123)
+
+	return time.Now().In(pacificTime).Format(time.RFC1123)
+}
 
 
+func makeRequest() coins {
 	var c coins
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET","https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest", nil)
+	if err != nil {
+		log.Print(err)
+	  os.Exit(1)
+	}
+  
+	api_key := goDotEnvVariable("API_KEY")
+	q := url.Values{}
+	q.Add("symbol", "BTC,ETH,DOGE")
+  
+	req.Header.Set("Accepts", "application/json")
+	req.Header.Add("X-CMC_PRO_API_KEY", api_key)
+	req.URL.RawQuery = q.Encode()
+
+	resp, err := client.Do(req);
+	if err != nil {
+		log.Print(err)
+	  os.Exit(1)
+	}
+	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -207,19 +203,51 @@ func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 		 os.Exit(1)
 	}
 
-	ac := accounting.Accounting{Symbol: "$", Precision: 2}
-	btc_price := ac.FormatMoneyBigFloat(big.NewFloat(c.Data.BTC.Quote.USD.Price))
-	eth_price := ac.FormatMoneyBigFloat(big.NewFloat(c.Data.ETH.Quote.USD.Price))
-	doge_price := ac.FormatMoneyBigFloat(big.NewFloat(c.Data.DOGE.Quote.USD.Price))
-	
-	log.Info().Msg("Returning BTC Price: " + btc_price)
-	log.Info().Msg("Returning ETH Price: " + eth_price)
-	log.Info().Msg("Returning DOGE Price: " + doge_price)
+	return c
+}
 
-	returnString := "Crypto prices -- " + dateTime + "\n\nBTC:  " + btc_price + "\nETH:  " + eth_price + "\nDOGE: " + doge_price + "\n"
+
+func getCoinPrice(coin string,c coins) string {
+	ac := accounting.Accounting{Symbol: "$", Precision: 2}
+	var price string
+
+	if coin == "BTC" {
+		price = ac.FormatMoneyBigFloat(big.NewFloat(c.Data.BTC.Quote.USD.Price))
+	} else if coin == "ETH" {
+		price = ac.FormatMoneyBigFloat(big.NewFloat(c.Data.ETH.Quote.USD.Price))
+	} else if coin == "DOGE" {
+		price = ac.FormatMoneyBigFloat(big.NewFloat(c.Data.DOGE.Quote.USD.Price))
+	} else {
+		price = ac.FormatMoneyBigFloat(big.NewFloat(c.Data.BTC.Quote.USD.Price))
+	}
+	
+	return price
+}
+
+
+func CryptoPrices(w http.ResponseWriter, r *http.Request) {
+	log.Info().Msg("Hello world! Serving crypto prices server")
+
+	dateTime := getTime()
+	req := makeRequest()
+
+	btcPrice := getCoinPrice("BTC", req)
+	ethPrice := getCoinPrice("ETH", req)
+	dogePrice := getCoinPrice("DOGE", req)
+	
+	log.Info().Msg("Returning All prices. BTC: " + btcPrice + "  ETH Price: " + ethPrice + "  DOGE Price: " + dogePrice)
+
+	returnString := "Crypto prices -- " + dateTime + "\n\nBTC:  " + btcPrice + "\nETH:  " + ethPrice + "\nDOGE: " + dogePrice + "\n"
 
 	fmt.Fprintf(w, returnString)
 }
 
 
-func doNothing(w http.ResponseWriter, r *http.Request){}
+func main() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: logTimeFormat}).Level(convertLevel("debug")).With().Caller().Logger()
+	log.Info().Msg("Listening on port :8080")
+	http.HandleFunc("/favicon.ico", doNothing)
+  http.HandleFunc("/", CryptoPrices)
+	http.HandleFunc("/testing", HelloWorld)
+	http.ListenAndServe(":8080", nil)
+}
