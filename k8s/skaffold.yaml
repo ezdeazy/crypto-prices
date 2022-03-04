@@ -8,3 +8,8 @@ profiles:
     kustomize:
       paths:
       - deploy/kind
+- name: gke
+  deploy:
+    kustomize:
+      paths:
+      - deploy/gke
