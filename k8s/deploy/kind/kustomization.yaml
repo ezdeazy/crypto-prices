@@ -9,3 +9,4 @@ bases:
 
 resources:
   - ingress.yaml
+  - service.yaml
