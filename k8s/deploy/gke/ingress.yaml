@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: crypto
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: ezdeazy-ninja
+    networking.gke.io/managed-certificates: managed-cert
+    kubernetes.io/ingress.class: "gce"
+spec:
+  defaultBackend:
+    service:
+      name: crypto-service
+      port:
+        number: 80

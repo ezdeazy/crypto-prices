@@ -23,8 +23,3 @@ spec:
         ports:
         - containerPort: 8080
           name: crypto-http
-      - image: nginx:latest
-        name: nginx
-        ports:
-        - containerPort: 80
-          name: nginx-http

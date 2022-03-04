@@ -9,4 +9,5 @@ bases:
 
 resources:
   - ingress.yaml
-  - service.yaml
+  - cert.yaml
+  - nodeport.yaml
