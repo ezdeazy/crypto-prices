@@ -257,7 +257,7 @@ func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 	dogePrice := getCoinPrice("DOGE", req)
 	solPrice := getCoinPrice("SOL", req)
 	
-	log.Info().Msg("cyrpto -- BTC: " + btcPrice + "  ETH: " + ethPrice + "  DOGE: " + dogePrice + "  SOL: " + solPrice)
+	log.Info().Msg("crypto -- BTC: " + btcPrice + "  ETH: " + ethPrice + "  DOGE: " + dogePrice + "  SOL: " + solPrice)
 
 	returnString := "Crypto prices -- " + dateTime + "\n\nBTC:  " + btcPrice + "\nETH:  " + ethPrice + "\nDOGE: " + dogePrice + "\nSOL:  " + solPrice + "\n"
 
