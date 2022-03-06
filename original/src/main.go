@@ -226,7 +226,7 @@ func getCoinPrice(coin string,c coins) string {
 
 
 func CryptoPrices(w http.ResponseWriter, r *http.Request) {
-	log.Info().Msg("Hello world! Serving crypto prices server")
+	// log.Info().Msg("Hello world! Serving crypto prices server")
 
 	dateTime := getTime()
 	req := makeRequest()
@@ -235,9 +235,25 @@ func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 	ethPrice := getCoinPrice("ETH", req)
 	dogePrice := getCoinPrice("DOGE", req)
 	
-	log.Info().Msg("Returning All prices. BTC: " + btcPrice + "  ETH Price: " + ethPrice + "  DOGE Price: " + dogePrice)
+	log.Info().Msg("cyrpto -- BTC: " + btcPrice + "  ETH Price: " + ethPrice + "  DOGE Price: " + dogePrice)
 
 	returnString := "Crypto prices -- " + dateTime + "\n\nBTC:  " + btcPrice + "\nETH:  " + ethPrice + "\nDOGE: " + dogePrice + "\n"
+
+	fmt.Fprintf(w, returnString)
+}
+
+func LandingPage(w http.ResponseWriter, r *http.Request) {
+	log.Info().Msg("Crypto prices landing page")
+
+	returnString := "Available endpoints:\n/crypto\n"
+
+	fmt.Fprintf(w, returnString)
+}
+
+func Health(w http.ResponseWriter, r *http.Request) {
+	log.Info().Msg("health -- app is healthy! hiya")
+
+	returnString := `( ･∀･)ﾉ ---=== + + +`
 
 	fmt.Fprintf(w, returnString)
 }
@@ -245,9 +261,12 @@ func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: logTimeFormat}).Level(convertLevel("debug")).With().Caller().Logger()
-	log.Info().Msg("Listening on port :8080")
+	// log.Info().Msg("Listening on port :8080")
+	log.Info().Msg("Hello world! Crypto prices server is now running")
 	http.HandleFunc("/favicon.ico", doNothing)
-  http.HandleFunc("/", CryptoPrices)
-	http.HandleFunc("/testing", HelloWorld)
+  	// http.HandleFunc("/", CryptoPrices)
+	http.HandleFunc("/", LandingPage)
+	http.HandleFunc("/crypto", CryptoPrices)
+	http.HandleFunc("/health", Health)
 	http.ListenAndServe(":8080", nil)
 }
