@@ -26,6 +26,7 @@ type data struct {
 	BTC  BTC  `json:"BTC"`
 	ETH  ETH  `json:"ETH"`
 	DOGE DOGE `json:"DOGE"`
+	SOL  SOL  `json:"SOL"`
 }
 
 type BTC struct {
@@ -65,6 +66,24 @@ type ETH struct {
 }
 
 type DOGE struct {
+	Id                int         `json:"id"`
+	Name              string      `json:"name"`
+	Symbol            string      `json:"symbol"`
+	Slug              string      `json:"slug"`
+	NumMarketPairs    int         `json:"num_market_pairs"`
+	DateAdded         time.Time   `json:"date_added"`
+	MaxSupply         int         `json:"max_supply"`
+	CirculatingSupply float64     `json:"circulating_supply"`
+	TotalSupply       float64     `json:"total_supply"`
+	IsActive          int         `json:"is_active"`
+	Platform          interface{} `json:"platform"`
+	CmcRank           int         `json:"cmc_rank"`
+	IsFiat            int         `json:"is_fiat"`
+	LastUpdated       time.Time   `json:"last_updated"`
+	Quote             Quote       `json:"quote"`
+}
+
+type SOL struct {
 	Id                int         `json:"id"`
 	Name              string      `json:"name"`
 	Symbol            string      `json:"symbol"`
@@ -179,7 +198,7 @@ func makeRequest() coins {
   
 	api_key := goDotEnvVariable("API_KEY")
 	q := url.Values{}
-	q.Add("symbol", "BTC,ETH,DOGE")
+	q.Add("symbol", "BTC,ETH,DOGE,SOL")
   
 	req.Header.Set("Accepts", "application/json")
 	req.Header.Add("X-CMC_PRO_API_KEY", api_key)
@@ -213,10 +232,12 @@ func getCoinPrice(coin string,c coins) string {
 
 	if coin == "BTC" {
 		price = ac.FormatMoneyBigFloat(big.NewFloat(c.Data.BTC.Quote.USD.Price))
-	} else if coin == "ETH" {
-		price = ac.FormatMoneyBigFloat(big.NewFloat(c.Data.ETH.Quote.USD.Price))
 	} else if coin == "DOGE" {
 		price = ac.FormatMoneyBigFloat(big.NewFloat(c.Data.DOGE.Quote.USD.Price))
+	} else if coin == "ETH" {
+		price = ac.FormatMoneyBigFloat(big.NewFloat(c.Data.ETH.Quote.USD.Price))
+	} else if coin == "SOL" {
+		price = ac.FormatMoneyBigFloat(big.NewFloat(c.Data.SOL.Quote.USD.Price))
 	} else {
 		price = ac.FormatMoneyBigFloat(big.NewFloat(c.Data.BTC.Quote.USD.Price))
 	}
@@ -226,7 +247,7 @@ func getCoinPrice(coin string,c coins) string {
 
 
 func CryptoPrices(w http.ResponseWriter, r *http.Request) {
-	log.Info().Msg("Hello world! Serving crypto prices server")
+	// log.Info().Msg("Hello world! Serving crypto prices server")
 
 	dateTime := getTime()
 	req := makeRequest()
@@ -234,10 +255,27 @@ func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 	btcPrice := getCoinPrice("BTC", req)
 	ethPrice := getCoinPrice("ETH", req)
 	dogePrice := getCoinPrice("DOGE", req)
+	solPrice := getCoinPrice("SOL", req)
 	
-	log.Info().Msg("Returning All prices. BTC: " + btcPrice + "  ETH Price: " + ethPrice + "  DOGE Price: " + dogePrice)
+	log.Info().Msg("crypto -- BTC: " + btcPrice + "  ETH: " + ethPrice + "  DOGE: " + dogePrice + "  SOL: " + solPrice)
 
-	returnString := "Crypto prices -- " + dateTime + "\n\nBTC:  " + btcPrice + "\nETH:  " + ethPrice + "\nDOGE: " + dogePrice + "\n"
+	returnString := "Crypto prices -- " + dateTime + "\n\nBTC:  " + btcPrice + "\nETH:  " + ethPrice + "\nDOGE: " + dogePrice + "\nSOL:  " + solPrice + "\n"
+
+	fmt.Fprintf(w, returnString)
+}
+
+func LandingPage(w http.ResponseWriter, r *http.Request) {
+	log.Info().Msg("Crypto prices landing page")
+
+	returnString := "Available endpoints:\n/crypto\n"
+
+	fmt.Fprintf(w, returnString)
+}
+
+func Health(w http.ResponseWriter, r *http.Request) {
+	log.Info().Msg("health -- app is healthy! hiya")
+
+	returnString := `( ･∀･)ﾉ ---=== + + +`
 
 	fmt.Fprintf(w, returnString)
 }
@@ -245,9 +283,12 @@ func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: logTimeFormat}).Level(convertLevel("debug")).With().Caller().Logger()
-	log.Info().Msg("Listening on port :8080")
+	// log.Info().Msg("Listening on port :8080")
+	log.Info().Msg("Hello world! Crypto prices server is now running")
 	http.HandleFunc("/favicon.ico", doNothing)
-  http.HandleFunc("/", CryptoPrices)
-	http.HandleFunc("/testing", HelloWorld)
+  	// http.HandleFunc("/", CryptoPrices)
+	http.HandleFunc("/", LandingPage)
+	http.HandleFunc("/crypto", CryptoPrices)
+	http.HandleFunc("/health", Health)
 	http.ListenAndServe(":8080", nil)
 }
