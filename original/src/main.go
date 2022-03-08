@@ -256,9 +256,14 @@ func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 }
 
 func LandingPage(w http.ResponseWriter, r *http.Request) {
-	log.Info().Msg("Crypto prices landing page")
+	if r.URL.Path != "/" {
+		log.Info().Msg("404 -- These aren t the droids you are looking for...")
+        errorHandler(w, r, http.StatusNotFound)
+        return
+    }
+	log.Info().Msg("landing -- Crypto prices landing page")
 
-	returnString := "Available endpoints:\n/crypto\n"
+	returnString := "Hello World!"
 
 	fmt.Fprintf(w, returnString)
 }
@@ -289,6 +294,13 @@ func Health(w http.ResponseWriter, r *http.Request) {
 	returnString := `( ･∀･)ﾉ ---=== + + +`
 
 	fmt.Fprintf(w, returnString)
+}
+
+func errorHandler(w http.ResponseWriter, r *http.Request, status int) {
+    w.WriteHeader(status)
+    if status == http.StatusNotFound {
+        fmt.Fprint(w, "These aren't the droids you are looking for...")
+    }
 }
 
 func main() {
