@@ -11,12 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/leekchan/accounting"
 	"github.com/joho/godotenv"
+	"github.com/leekchan/accounting"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
-
 
 type coins struct {
 	Data data `json:"data"`
@@ -123,48 +122,43 @@ type USD struct {
 
 const logTimeFormat = "2006-01-02T15:04:05.000Z07:00"
 
-
 func goDotEnvVariable(key string) string {
 
 	err := godotenv.Load(".env")
-  
+
 	if err != nil {
 		// do nothing to load from environment variable
 	}
-  
+
 	return os.Getenv(key)
 }
-
 
 func convertLevel(level string) zerolog.Level {
 	switch strings.ToLower(level) {
 	case "trace":
-		 return zerolog.TraceLevel
+		return zerolog.TraceLevel
 	case "debug":
-		 return zerolog.DebugLevel
+		return zerolog.DebugLevel
 	case "info":
-		 return zerolog.InfoLevel
+		return zerolog.InfoLevel
 	case "warn":
-		 return zerolog.WarnLevel
+		return zerolog.WarnLevel
 	case "error":
-		 return zerolog.ErrorLevel
+		return zerolog.ErrorLevel
 	case "fatal":
-		 return zerolog.FatalLevel
+		return zerolog.FatalLevel
 	case "panic":
-		 return zerolog.PanicLevel
+		return zerolog.PanicLevel
 	default:
-		 return zerolog.InfoLevel
+		return zerolog.InfoLevel
 	}
 }
-
 
 func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	log.Info().Msg("Hello world from our test page!")
 }
 
-
-func doNothing(w http.ResponseWriter, r *http.Request){}
-
+func doNothing(w http.ResponseWriter, r *http.Request) {}
 
 func getTime() string {
 	// returns the current time in PST
@@ -175,7 +169,7 @@ func getTime() string {
 			log.Printf("error loading location '%s': %v\n", tz, err)
 		}
 	}
-  
+
 	// convert UTC to pacific
 	pacificTime, errTime := time.LoadLocation("America/Los_Angeles")
 	if errTime != nil {
@@ -185,48 +179,46 @@ func getTime() string {
 	return time.Now().In(pacificTime).Format(time.RFC1123)
 }
 
-
 func makeRequest() coins {
 	var c coins
 
 	client := &http.Client{}
-	req, err := http.NewRequest("GET","https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest", nil)
+	req, err := http.NewRequest("GET", "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest", nil)
 	if err != nil {
 		log.Print(err)
-	  os.Exit(1)
+		os.Exit(1)
 	}
-  
+
 	api_key := goDotEnvVariable("API_KEY")
 	q := url.Values{}
 	q.Add("symbol", "BTC,ETH,DOGE,SOL")
-  
+
 	req.Header.Set("Accepts", "application/json")
 	req.Header.Add("X-CMC_PRO_API_KEY", api_key)
 	req.URL.RawQuery = q.Encode()
 
-	resp, err := client.Do(req);
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Print(err)
-	  os.Exit(1)
+		os.Exit(1)
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		 log.Err(err).Msg("error reading resp")
-		 os.Exit(1)
+		log.Err(err).Msg("error reading resp")
+		os.Exit(1)
 	}
 
 	if err = json.Unmarshal(body, &c); err != nil { // Parse []byte to go struct pointer
-		 log.Err(err).Msg("Can not unmarshal JSON")
-		 os.Exit(1)
+		log.Err(err).Msg("Can not unmarshal JSON")
+		os.Exit(1)
 	}
 
 	return c
 }
 
-
-func getCoinPrice(coin string,c coins) string {
+func getCoinPrice(coin string, c coins) string {
 	ac := accounting.Accounting{Symbol: "$", Precision: 2}
 	var price string
 
@@ -241,10 +233,9 @@ func getCoinPrice(coin string,c coins) string {
 	} else {
 		price = ac.FormatMoneyBigFloat(big.NewFloat(c.Data.BTC.Quote.USD.Price))
 	}
-	
+
 	return price
 }
-
 
 func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 	// log.Info().Msg("Hello world! Serving crypto prices server")
@@ -256,7 +247,7 @@ func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 	ethPrice := getCoinPrice("ETH", req)
 	dogePrice := getCoinPrice("DOGE", req)
 	solPrice := getCoinPrice("SOL", req)
-	
+
 	log.Info().Msg("crypto -- BTC: " + btcPrice + "  ETH: " + ethPrice + "  DOGE: " + dogePrice + "  SOL: " + solPrice)
 
 	returnString := "Crypto prices -- " + dateTime + "\n\nBTC:  " + btcPrice + "\nETH:  " + ethPrice + "\nDOGE: " + dogePrice + "\nSOL:  " + solPrice + "\n"
@@ -272,6 +263,26 @@ func LandingPage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, returnString)
 }
 
+func Vault(w http.ResponseWriter, r *http.Request) {
+	log.Info().Msg("vault -- nothing to see here")
+
+	bop5362 := "https://opensea.io/assets/0x495f947276749ce646f68ac8c248420045cb7b5e/7158387443764788461856806462490708796861921043890951688982477332577228161025"
+	aa1591 := "https://opensea.io/assets/0x92b1289ee1c70cb2e51fa63a448ceef2734ec6ff/1591"
+
+	aw147 := "https://solscan.io/token/7RjK5U2Vu5rdJX8qzLxYKT5AEeJ85Rt5YspTsnpXxEjX"
+	aw1994 := "https://solscan.io/token/HhPBpvkYZx2PGugo8wjck3LtWP6prRmMJBtpQHck8WQ1"
+	aw2745 := "https://solscan.io/token/vCrcerhJB3ct3din5x6ZiygstzzNu5Fn5hii34dbVrT"
+	aw2770 := "https://solscan.io/token/9aVQXBzY4PvWDCxSJz2Yho7Q12W2VbuK84347msoRZvV"
+	aw2794 := "https://solscan.io/token/BPgEvvSKnW35hxQf398pBBmS1cWJb2hcH3DWSRF5rSBW"
+	aw3571 := "https://solscan.io/token/6YkUND1u1rwJwFYP7xaandtzuAHvC1bxWz69sr9s2oiJ"
+
+	ethString := "\nETH NFTs:\n" + bop5362 + "\n" + aa1591 + "\n"
+	returnString := ethString + "\nSOL NFTs:\n" + aw147 + "\n" + aw1994 + "\n" + aw2745 + "\n" + aw2770 + "\n" + aw2794 + "\n" + aw3571
+
+	fmt.Fprint(w, returnString)
+
+}
+
 func Health(w http.ResponseWriter, r *http.Request) {
 	log.Info().Msg("health -- app is healthy! hiya")
 
@@ -280,15 +291,13 @@ func Health(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, returnString)
 }
 
-
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: logTimeFormat}).Level(convertLevel("debug")).With().Caller().Logger()
-	// log.Info().Msg("Listening on port :8080")
 	log.Info().Msg("Hello world! Crypto prices server is now running")
 	http.HandleFunc("/favicon.ico", doNothing)
-  	// http.HandleFunc("/", CryptoPrices)
 	http.HandleFunc("/", LandingPage)
 	http.HandleFunc("/crypto", CryptoPrices)
+	http.HandleFunc("/vault", Vault)
 	http.HandleFunc("/health", Health)
 	http.ListenAndServe(":8080", nil)
 }
