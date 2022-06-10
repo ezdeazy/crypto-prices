@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: crypto
-        image: ezdeazy/crypto-prices:0.2.2
+        image: ezdeazy/crypto-prices:0.2.31
         env:
         - name: API_KEY
           value: ""

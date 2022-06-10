@@ -257,10 +257,13 @@ func CryptoPrices(w http.ResponseWriter, r *http.Request) {
 
 func LandingPage(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		log.Info().Msg("404 -- These aren t the droids you are looking for...")
+		log.Info().Msg("404 -- These are not the droids you are looking for...")
         errorHandler(w, r, http.StatusNotFound)
         return
     }
+	log.Warn().Msg(r.URL.Path)
+	fmt.Printf("%+v\n", r)
+	fmt.Println("Testing")
 	log.Info().Msg("landing -- Crypto prices landing page")
 
 	returnString := "Hello World!"

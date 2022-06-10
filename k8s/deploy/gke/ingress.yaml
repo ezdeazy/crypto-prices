@@ -6,6 +6,7 @@ metadata:
     kubernetes.io/ingress.global-static-ip-name: ezdeazy-ninja
     networking.gke.io/managed-certificates: managed-cert
     kubernetes.io/ingress.class: "gce"
+    ingress.kubernetes.io/whitelist-source-range: "172.91.209.103/32"
 spec:
   defaultBackend:
     service:
